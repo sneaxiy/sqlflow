@@ -75,6 +75,7 @@ func start(modelDir, caCrt, caKey string, port int, isArgoMode bool) {
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	logger.Infof("Server Started at %s", listenString)
+	logger.Info("New Log from Bright")
 	if err := s.Serve(lis); err != nil {
 		logger.Fatalf("failed to serve: %v", err)
 	}

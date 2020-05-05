@@ -26,6 +26,7 @@ import (
 
 	"sqlflow.org/sqlflow/pkg/database"
 	"sqlflow.org/sqlflow/pkg/ir"
+	"sqlflow.org/sqlflow/pkg/log"
 	"sqlflow.org/sqlflow/pkg/model"
 	"sqlflow.org/sqlflow/pkg/pipe"
 	pb "sqlflow.org/sqlflow/pkg/proto"
@@ -127,6 +128,9 @@ func (s *defaultSubmitter) SaveModel(cl *ir.TrainStmt) error {
 }
 
 func (s *defaultSubmitter) runCommand(program string) error {
+	logger := log.GetDefaultLogger()
+	logger.Info(program)
+
 	cw := &logChanWriter{wr: s.Writer}
 	var output bytes.Buffer
 	w := io.MultiWriter(cw, &output)

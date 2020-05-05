@@ -22,6 +22,7 @@ type Executor interface {
 	ExecuteExplain(*ExplainStmt) error
 	ExecuteEvaluate(*EvaluateStmt) error
 	ExecuteShowTrain(*ShowTrainStmt) error
+	ExecuteRun(*RunStmt) error
 }
 
 // SQLFlowStmt has multiple implementations: TrainStmt, PredictStmt, ExplainStmt and standard SQL.
@@ -215,3 +216,23 @@ func (sql *ShowTrainStmt) IsExtended() bool { return true }
 
 // GetOriginalSQL returns the original SQL statement used to get current IR result
 func (sql *ShowTrainStmt) GetOriginalSQL() string { return sql.OriginalSQL }
+
+// RunStmt is the statement structure for `TO RUN` clause
+type RunStmt struct {
+	OriginalSQL string
+	Select      string
+	Attributes  map[string]interface{}
+	Into        string
+}
+
+// Execute generates and executes code for RunStmt
+func (cl *RunStmt) Execute(s Executor) error { return s.ExecuteRun(cl) }
+
+// SetOriginalSQL sets the original sql string
+func (cl *RunStmt) SetOriginalSQL(sql string) { cl.OriginalSQL = sql }
+
+// IsExtended returns whether a SQLFlowStmt is an extended SQL statement
+func (cl *RunStmt) IsExtended() bool { return true }
+
+// GetOriginalSQL returns the original SQL statement used to get current IR result
+func (cl *RunStmt) GetOriginalSQL() string { return cl.OriginalSQL }

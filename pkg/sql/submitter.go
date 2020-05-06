@@ -258,6 +258,10 @@ func (s *defaultSubmitter) ExecuteEvaluate(cl *ir.EvaluateStmt) error {
 	return nil
 }
 
+func (s *defaultSubmitter) ExecuteRun(cl *ir.RunStmt) error {
+	return nil
+}
+
 func createEvaluationResultTable(db *database.DB, tableName string, metricNames []string) error {
 	dropStmt := fmt.Sprintf(`DROP TABLE IF EXISTS %s;`, tableName)
 	var e error

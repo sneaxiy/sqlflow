@@ -221,6 +221,7 @@ func (sql *ShowTrainStmt) GetOriginalSQL() string { return sql.OriginalSQL }
 type RunStmt struct {
 	OriginalSQL string
 	Select      string
+	Function    string
 	Attributes  map[string]interface{}
 	Into        string
 }

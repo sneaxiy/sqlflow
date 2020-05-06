@@ -63,12 +63,14 @@ type SQLFlowSelectStmt struct {
 	Explain  bool
 	Evaluate bool
 	ShowTrain bool
+	Run bool
 	StandardSelect
 	TrainClause
 	PredictClause
 	ExplainClause
 	EvaluateClause
 	ShowTrainClause
+	RunClause
 }
 
 type StandardSelect struct {
@@ -114,6 +116,12 @@ type ShowTrainClause struct {
 	ModelName string
 }
 
+type RunClause struct {
+	Function	string
+	RunAttrs	Attributes
+	ResultTable	string
+}
+
 var parseResult *SQLFlowSelectStmt
 
 func attrsUnion(as1, as2 Attributes) Attributes {
@@ -143,6 +151,7 @@ func attrsUnion(as1, as2 Attributes) Attributes {
   expln ExplainClause
   evalt EvaluateClause
   shwtran ShowTrainClause
+  run RunClause
 }
 
 %type  <eslt> sqlflow_select_stmt
@@ -153,13 +162,14 @@ func attrsUnion(as1, as2 Attributes) Attributes {
 %type  <infr> predict_clause
 %type  <expln> explain_clause
 %type  <evalt> evaluate_clause
+%type  <run> run_clause
 %type  <val> optional_using
 %type  <expr> expr funcall column
 %type  <expl> ExprList pythonlist columns
 %type  <atrs> attr
 %type  <atrs> attrs
 
-%token <val> SELECT FROM WHERE LIMIT TRAIN PREDICT EXPLAIN EVALUATE WITH COLUMN LABEL USING INTO FOR AS TO SHOW
+%token <val> SELECT FROM WHERE LIMIT TRAIN PREDICT EXPLAIN EVALUATE RUN WITH COLUMN LABEL USING INTO FOR AS TO SHOW
 %token <val> IDENT NUMBER STRING
 
 %left <val> AND OR
@@ -202,6 +212,12 @@ sqlflow_select_stmt
 		Extended: true,
 		ShowTrain: true,
 		ShowTrainClause: $1}
+}
+| run_clause end_of_stmt {
+	parseResult = &SQLFlowSelectStmt{
+		Extended: true,
+		Run: true,
+		RunClause: $1}
 }
 ;
 
@@ -256,6 +272,12 @@ explain_clause
 evaluate_clause
 : TO EVALUATE IDENT WITH attrs label_clause INTO IDENT { $$.ModelToEvaluate = $3; $$.EvaluateAttrs = $5; $$.EvaluateLabel = $6; $$.EvaluateInto = $8 }
 | TO EVALUATE IDENT label_clause INTO IDENT { $$.ModelToEvaluate = $3; $$.EvaluateLabel = $4; $$.EvaluateInto = $6 }
+;
+
+run_clause
+: TO RUN IDENT { $$.Function = $3 }
+| TO RUN IDENT WITH attrs { $$.Function = $3; $$.RunAttrs = $5 }
+| TO RUN IDENT WITH attrs INTO IDENT { $$.Function = $3; $$.RunAttrs = $5; $$.ResultTable = $7 }
 ;
 
 show_train_clause

@@ -141,6 +141,10 @@ func (s *alisaSubmitter) ExecutePredict(ps *ir.PredictStmt) error {
 	return s.uploadResourceAndSubmitAlisaTask(code, requirements, paiCmd)
 }
 
+func (s *alisaSubmitter) ExecuteRun(cl *ir.RunStmt) error {
+	return nil
+}
+
 func (s *alisaSubmitter) uploadResourceAndSubmitAlisaTask(entryCode, requirements, alisaExecCode string) error {
 	// upload generated program to OSS and submit an Alisa task.
 	ossCodeObjectName := randStringRunes(16)

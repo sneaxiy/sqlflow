@@ -146,8 +146,12 @@ func runSingleSQLFlowStatement(wr *pipe.Writer, sql *parser.SQLFlowStmt, db *dat
 			e = fmt.Errorf("encounter %v when dealwith error: %s", e, err)
 		}
 	}(cwd)
+
+
+	logger := log.GetDefaultLogger()
 	var r ir.SQLFlowStmt
 	if sql.IsExtendedSyntax() {
+		logger.Info("Execute SQL with extended syntax")
 		if sql.Train {
 			r, err = generateTrainStmtWithInferredColumns(sql.SQLFlowSelectStmt, session.DbConnStr, true)
 		} else if sql.ShowTrain {
@@ -158,12 +162,16 @@ func runSingleSQLFlowStatement(wr *pipe.Writer, sql *parser.SQLFlowStmt, db *dat
 			r, err = generatePredictStmt(sql.SQLFlowSelectStmt, session.DbConnStr, modelDir, cwd, GetSubmitter(session.Submitter).GetTrainStmtFromModel())
 		} else if sql.Evaluate {
 			r, err = generateEvaluateStmt(sql.SQLFlowSelectStmt, session.DbConnStr, modelDir, cwd, GetSubmitter(session.Submitter).GetTrainStmtFromModel())
+		} else if sql.Run {
+			logger.Info("GenerateRunStmt")
+			r, err = generateRunStmt(sql.SQLFlowSelectStmt, session.DbConnStr, modelDir, cwd, GetSubmitter(session.Submitter).GetTrainStmtFromModel())
 		}
 	} else {
 		standardSQL := ir.NormalStmt(sql.Original)
 		r = &standardSQL
 	}
 	if err != nil {
+		logger.Infof("The error is: %v", err)
 		return err
 	}
 	r.SetOriginalSQL(sql.Original)

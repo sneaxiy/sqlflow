@@ -26,10 +26,12 @@ import (
 
 	"sqlflow.org/sqlflow/pkg/database"
 	"sqlflow.org/sqlflow/pkg/ir"
+	"sqlflow.org/sqlflow/pkg/log"
 	"sqlflow.org/sqlflow/pkg/model"
 	"sqlflow.org/sqlflow/pkg/pipe"
 	pb "sqlflow.org/sqlflow/pkg/proto"
 	"sqlflow.org/sqlflow/pkg/sql/codegen/pai"
+	"sqlflow.org/sqlflow/pkg/sql/codegen/run"
 	"sqlflow.org/sqlflow/pkg/sql/codegen/tensorflow"
 	"sqlflow.org/sqlflow/pkg/sql/codegen/xgboost"
 )
@@ -259,6 +261,14 @@ func (s *defaultSubmitter) ExecuteEvaluate(cl *ir.EvaluateStmt) error {
 }
 
 func (s *defaultSubmitter) ExecuteRun(cl *ir.RunStmt) error {
+	logger := log.GetDefaultLogger()
+	logger.Infof("Submitter executes run: %v", cl)
+
+	code, _ := run.Run(cl, s.Session)
+
+	if err := s.runCommand(code); err != nil {
+		return err
+	}
 	return nil
 }
 

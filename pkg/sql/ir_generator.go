@@ -14,7 +14,6 @@
 package sql
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -387,7 +386,19 @@ func generateEvaluateStmt(slct *parser.SQLFlowSelectStmt, connStr string, modelD
 }
 
 func generateRunStmt(slct *parser.SQLFlowSelectStmt, connStr string, modelDir string, cwd string, getTrainStmtFromModel bool) (*ir.RunStmt, error) {
-	return nil, errors.New("RunStmt is not implemented")
+	attrMap, err := generateAttributeIR(&slct.RunAttrs)
+	if err != nil {
+		return nil, err
+	}
+
+	runStmt := &ir.RunStmt{
+		Select:		slct.StandardSelect.String(),
+		Function:	slct.Function,
+		Attributes: attrMap,
+		Into:		slct.ResultTable,
+	}
+
+	return runStmt, nil
 }
 
 func generateAttributeIR(attrs *parser.Attributes) (map[string]interface{}, error) {

@@ -152,11 +152,9 @@ func runSingleSQLFlowStatement(wr *pipe.Writer, sql *parser.SQLFlowStmt, db *dat
 		}
 	}(cwd)
 
-
 	logger := log.GetDefaultLogger()
 	var r ir.SQLFlowStmt
 	if sql.IsExtendedSyntax() {
-		logger.Info("Execute SQL with extended syntax")
 		if sql.Train {
 			r, err = generateTrainStmtWithInferredColumns(sql.SQLFlowSelectStmt, session.DbConnStr, true)
 		} else if sql.ShowTrain {
@@ -168,7 +166,6 @@ func runSingleSQLFlowStatement(wr *pipe.Writer, sql *parser.SQLFlowStmt, db *dat
 		} else if sql.Evaluate {
 			r, err = generateEvaluateStmt(sql.SQLFlowSelectStmt, session.DbConnStr, modelDir, cwd, GetSubmitter(session.Submitter).GetTrainStmtFromModel())
 		} else if sql.Run {
-			logger.Info("GenerateRunStmt")
 			r, err = generateRunStmt(sql.SQLFlowSelectStmt, session.DbConnStr, modelDir, cwd, GetSubmitter(session.Submitter).GetTrainStmtFromModel())
 		}
 	} else {

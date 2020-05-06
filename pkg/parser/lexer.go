@@ -133,6 +133,7 @@ func (l *lexer) emitIdentOrKeyword(lval *extendedSyntaxSymType) int {
 		"PREDICT":  PREDICT,
 		"EXPLAIN":  EXPLAIN,
 		"EVALUATE": EVALUATE,
+		"RUN":		RUN,
 		"USING":    USING,
 		"WITH":     WITH,
 		"COLUMN":   COLUMN,

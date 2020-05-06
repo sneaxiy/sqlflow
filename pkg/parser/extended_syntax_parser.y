@@ -151,7 +151,7 @@ func attrsUnion(as1, as2 Attributes) Attributes {
   expln ExplainClause
   evalt EvaluateClause
   shwtran ShowTrainClause
-  run RunClause
+  runc RunClause
 }
 
 %type  <eslt> sqlflow_select_stmt
@@ -162,7 +162,7 @@ func attrsUnion(as1, as2 Attributes) Attributes {
 %type  <infr> predict_clause
 %type  <expln> explain_clause
 %type  <evalt> evaluate_clause
-%type  <run> run_clause
+%type  <runc> run_clause
 %type  <val> optional_using
 %type  <expr> expr funcall column
 %type  <expl> ExprList pythonlist columns
@@ -206,13 +206,13 @@ sqlflow_select_stmt
 		Extended: true,
 		Evaluate: true,
 		EvaluateClause: $1}
-}
+  }
 | show_train_clause end_of_stmt {
 	parseResult = &SQLFlowSelectStmt{
 		Extended: true,
 		ShowTrain: true,
 		ShowTrainClause: $1}
-}
+  }
 | run_clause end_of_stmt {
 	parseResult = &SQLFlowSelectStmt{
 		Extended: true,

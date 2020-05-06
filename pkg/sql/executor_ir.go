@@ -103,8 +103,12 @@ func ResolveSQLProgram(sqlStmts []*parser.SQLFlowStmt, logger *log.Logger) ([]ir
 }
 
 func runSQLProgram(wr *pipe.Writer, sqlProgram string, db *database.DB, modelDir string, session *pb.Session) error {
+	logger := log.GetDefaultLogger()
+	logger.Infof("Execute runSQLProgram: %v", sqlProgram)
+
 	stmts, err := parser.Parse(db.DriverName, sqlProgram)
 	if err != nil {
+		logger.Infof("The stmts is %v. The error is: %v", stmts, err)
 		return err
 	}
 	// NOTE(tony): We generate IR and execute its translated program one-by-one since IR generation may depend on the execution
@@ -116,6 +120,7 @@ func runSQLProgram(wr *pipe.Writer, sqlProgram string, db *database.DB, modelDir
 	// The IR generation on the second statement would fail since it requires inspection the schema of some_table,
 	// which depends on the execution of create table some_table as (select ...);.
 	for _, sql := range stmts {
+		logger.Infof("Execute the SQL: %v", sql)
 		if err := runSingleSQLFlowStatement(wr, sql, db, modelDir, session); err != nil {
 			return err
 		}

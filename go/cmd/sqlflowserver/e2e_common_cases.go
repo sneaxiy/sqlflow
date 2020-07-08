@@ -731,9 +731,14 @@ func caseXGBoostSparseKeyValueColumn(t *testing.T) {
 		evaluateSQL := fmt.Sprintf(`SELECT c1, label_col FROM %[1]s.%[2]s 
 TO EVALUATE %[3]s WITH validation.metrics="mean_squared_error" LABEL label_col INTO %[1]s.%[4]s;`, dbName, trainTable, trainedModel, evaluateTable)
 		executeSQLFunc(evaluateSQL)
-		explainSQL := fmt.Sprintf("SELECT c1, label_col FROM %s.%s TO EXPLAIN %s WITH summary.plot_type=bar;", dbName, trainTable, trainedModel)
-		executeSQLFunc(explainSQL)
 	}
+
+	paiExplainExtra := ""
+	if isPai {
+		paiExplainExtra = fmt.Sprintf(`, label_col="label_col" INTO %s.xgb_kv_column_explain_table`, dbName)
+	}
+	explainSQL := fmt.Sprintf("SELECT c1, label_col FROM %s.%s TO EXPLAIN %s WITH summary.plot_type=bar %s;", dbName, trainTable, trainedModel, paiExplainExtra)
+	executeSQLFunc(explainSQL)
 }
 
 func decodeAnyTypedRowData(anyData [][]*any.Any) ([][]interface{}, error) {

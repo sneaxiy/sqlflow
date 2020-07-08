@@ -587,16 +587,49 @@ func deleteDirRecursive(bucket *oss.Bucket, dir string) error {
 	return nil
 }
 
-func getCreateShapResultSQL(db *database.DB, tableName string, selectStmt string, labelCol string) (string, error) {
+func getFieldSizes(stmt *ir.TrainStmt) map[string]int {
+	fieldSizes := make(map[string]int)
+	for _, fcs := range stmt.Features {
+		for _, fc := range fcs {
+			for _, fd := range fc.GetFieldDesc() {
+				if fd.Shape == nil {
+					fieldSizes[fd.Name] = 1
+					continue
+				}
+
+				size := 1
+				for s := range fd.Shape {
+					size *= s
+				}
+				fieldSizes[fd.Name] = size
+			}
+		}
+	}
+	return fieldSizes
+}
+
+func getCreateShapResultSQL(db *database.DB, tableName string, stmt *ir.ExplainStmt, labelCol string) (string, error) {
 	// create table to record shap values for every feature for each sample.
-	flds, _, err := getSQLFieldType(selectStmt, db)
+	flds, _, err := getSQLFieldType(stmt.Select, db)
 	if err != nil {
 		return "", err
 	}
+	sizes := getFieldSizes(stmt.TrainStmt)
 	columnDefList := []string{}
 	for _, fieldName := range flds {
+		size, ok := sizes[fieldName]
+		if !ok {
+			return "", fmt.Errorf("cannot find field %s", fieldName)
+		}
+
 		if fieldName != labelCol {
-			columnDefList = append(columnDefList, fmt.Sprintf("%s STRING", fieldName))
+			if size == 1 {
+				columnDefList = append(columnDefList, fmt.Sprintf("%s STRING", fieldName))
+			} else {
+				for i := 0; i < size; i++ {
+					columnDefList = append(columnDefList, fmt.Sprintf("%s_%d STRING", fieldName, i))
+				}
+			}
 		}
 	}
 	createStmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s);`, tableName, strings.Join(columnDefList, ","))
@@ -625,7 +658,7 @@ func createExplainResultTable(db *database.DB, ir *ir.ExplainStmt, tableName str
 			if !ok {
 				return fmt.Errorf("need to specify WITH label_col=lable_col_name when explaining deep models")
 			}
-			createStmt, e = getCreateShapResultSQL(db, tableName, ir.Select, labelCol.(string))
+			createStmt, e = getCreateShapResultSQL(db, tableName, ir, labelCol.(string))
 			if e != nil {
 				return e
 			}
@@ -635,7 +668,7 @@ func createExplainResultTable(db *database.DB, ir *ir.ExplainStmt, tableName str
 		if !ok {
 			return fmt.Errorf("need to specify WITH label_col=lable_col_name when explaining xgboost models")
 		}
-		createStmt, e = getCreateShapResultSQL(db, tableName, ir.Select, labelCol.(string))
+		createStmt, e = getCreateShapResultSQL(db, tableName, ir, labelCol.(string))
 		if e != nil {
 			return e
 		}

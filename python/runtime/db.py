@@ -192,11 +192,31 @@ def read_feature(raw_val, feature_spec, feature_name):
         return raw_val,
 
 
+INT_TYPE = long if six.PY2 else int
+LIMIT_PATTERN = re.compile("(?i)LIMIT\\s+[0-9]+")
+BLANK_PATTERN = re.compile("\\s+")
+
+
+def add_or_replace_limit_num(select, n):
+    if n < 0:
+        return select
+
+    def replace_limit_num(limit_str):
+        num = INT_TYPE(BLANK_PATTERN.split(limit_str)[1])
+        if num > n:
+            return "LIMIT " + str(n)
+        else:
+            return limit_str
+
+    if LIMIT_PATTERN.match(select) is None:
+        return select + " LIMIT 1"
+    else:
+        return LIMIT_PATTERN.sub(repl=replace_limit_num, string=select)
+
+
 def selected_cols(conn, select):
     select = select.strip().rstrip(";")
-    limited = re.findall("LIMIT [0-9]*$", select.upper())
-    if not limited:
-        select += " LIMIT 1"
+    select = add_or_replace_limit_num(select, 1)
 
     driver = conn.driver
     if driver == "hive":
